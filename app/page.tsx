@@ -1,71 +1,63 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client"; // For Next.js App Router (if using Pages Router, remove this)
+/* eslint-disable @next/next/no-img-element */
+"use client"
+import { VideoToFrames, VideoToFramesMethod } from "@/lib/VideoToFrame";
+import { useState, ChangeEvent } from "react";
+import { Circles } from "react-loader-spinner";
 
-import { useState } from "react";
-import Tesseract from "tesseract.js";
-import Image from "next/image";
-import { Console } from "console";
+export default function App() {
+  const [images, setImages] = useState<string[]>([]);
+  const [status, setStatus] = useState("IDLE");
 
-const OCR = () => {
-  const [image, setImage] = useState<string | null>(null);
-  const [text, setText] = useState<string>("");
+  const onInput = async (event: ChangeEvent<HTMLInputElement>) => {
+    setImages([]);
+    setStatus("LOADING");
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!event.target.files?.length) return;
+    const file = event.target.files[0];
+    const fileUrl = URL.createObjectURL(file);
+    const frames = await VideoToFrames.getFrames(
+      fileUrl,
+      30,
+      VideoToFramesMethod.totalFrames
+    );
+
+    setStatus("IDLE");
+    setImages(frames);
   };
 
-  const extractText = async () => {
-    if (!image) return;
-    setText("Processing...");
-
-    try {
-      const { data } = await Tesseract.recognize(image, "eng");
-      setText(data.text);
-    } catch (error) {
-      console.error("OCR Error:", error);
-      setText("Error extracting text.");
-    }
-  };
+  const now = new Date().toDateString();
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 bg-gray-100 rounded-xl shadow-lg">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        className="p-2 border rounded-md"
-      />
+    <div className="container">
+      <h1>Get frames from video 🎞</h1>
+      <p>Upload a video, then click the images you want to download!</p>
+      <label>
+        {status === "IDLE" ? (
+          "Choose file"
+        ) : (
+          <Circles color="#00BFFF" height={100} width={100} />
+        )}
+        <input
+          type="file"
+          className="hidden"
+          accept="video/*"
+          onChange={onInput}
+        />
+      </label>
 
-      {image && (
-        <div className="relative w-80 h-60">
-          <Image
-            src={image}
-            alt="Uploaded preview"
-            layout="fill"
-            objectFit="contain"
-            className="rounded-lg"
-          />
+      {images?.length > 0 && (
+        <div className="output">
+          {images.map((imageUrl, index) => (
+            <a
+              key={imageUrl}
+              href={imageUrl}
+            >
+              <img src={imageUrl} alt="" />
+            </a>
+          ))}
         </div>
       )}
-
-      <button
-        onClick={extractText}
-        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-      >
-        Extract Text
-      </button>
-      <p className="p-3 bg-white rounded-md border whitespace-pre-wrap">
-        {text || "Extracted text will appear here..."}
-      </p>
     </div>
   );
-};
-
-export default OCR;
+}
