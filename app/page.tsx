@@ -28,7 +28,6 @@ const OCR = () => {
     try {
       const { data } = await Tesseract.recognize(image, "eng");
       setText(data.text);
-      console.log(text);
     } catch (error) {
       console.error("OCR Error:", error);
       setText("Error extracting text.");
