@@ -119,7 +119,7 @@ export default function App() {
     setVideoUrl(fileUrl); // Set video URL for display
     const frames = await VideoToFrames.getFrames(
       fileUrl,
-      25,
+      30,
       VideoToFramesMethod.totalFrames
     );
     setLoading(false);
@@ -167,7 +167,7 @@ export default function App() {
           console.error("Error extracting text:", err);
         });
     }
-
+    console.log(extractedTexts);
     processData(extractedTexts, members);
     const final_result = mostRepeatedNumber(members);
     const [membersAttacked, scoreResult] = formatAttackResults(final_result);
