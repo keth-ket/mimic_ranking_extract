@@ -15,7 +15,10 @@ const nameExist = (name: string, nameMap: NameMap): [boolean, string] => {
     return [true, "FaXe"];
   } else if (name === "Rusrks" || name === "Ruerks") {
     return [true, "RUBIKS"];
+  }else if (name === "DBCOOPER") {
+    return [true, "DBC00PER"];
   }
+  
 
   for (const member in nameMap) {
     if (name.toLowerCase().includes(member.toLowerCase())) {
@@ -97,9 +100,6 @@ export default function TextExtract() {
   const [score, setScore] = useState("");
   const videoInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLInputElement>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   const triggerVideoInput = () => {
     if (videoInputRef.current) {
       videoInputRef.current.click();
@@ -119,10 +119,10 @@ export default function TextExtract() {
     if (!event.target.files?.length) return;
     const file = event.target.files[0];
     const fileUrl = URL.createObjectURL(file);
-    setVideoUrl(fileUrl); // Set video URL for display
+    // setVideoUrl(fileUrl); // Set video URL for display
     const frames = await VideoToFrames.getFrames(
       fileUrl,
-      30,
+      60,
       VideoToFramesMethod.totalFrames
     );
     setLoading(false);
@@ -157,6 +157,7 @@ export default function TextExtract() {
   const extractTextFromImages = async () => {
     setExtractingText(true);
     const extractedTexts: string[] = [];
+    setMembers({}); // Reset members before processing
 
     for (const image of images) {
       await Tesseract.recognize(image, "eng", {})
@@ -185,16 +186,6 @@ export default function TextExtract() {
       <div className="font-bold text-2xl text-center">
         Welcome to Ket&apos;s Mimic Rank Extraction Program!
       </div>
-      {videoUrl && (
-        <div>
-          <video
-            className="max-h-150 w-auto"
-            ref={videoRef}
-            src={videoUrl}
-            controls
-          />
-        </div>
-      )}
       <Button
         className="flex items-center justify-center bg-card-foreground"
         onClick={triggerVideoInput}
